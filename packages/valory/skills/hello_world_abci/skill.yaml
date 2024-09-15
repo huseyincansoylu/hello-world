@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
-  behaviours.py: bafybeiaai23italbrtlgpl7ie4pelhtrm6uqn773qap6jl5h4mj7fd553e
+  behaviours.py: bafybeifo7nx3exr6iwoogh2pnszfccr6y6yfkg4mrqtbha5gdcmtrqvorq
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeibsjhlpuigtbmtcusv4qrtebal23ylv2sulj6dolvln6fwlkjp23a
   handlers.py: bafybeieyq37quymqq6md3hi5bvynifnkx73bcvmzct6difyvdkbzj6abaq
-  models.py: bafybeifyc3dezez4wbyexuy7q4do2xwlfrvtcvwsxgvg5cldeyvyi6ofju
-  payloads.py: bafybeiajaxhepvqsznhgadw24w4zumfpxcqysv7y4mdsnh5awvtvirpb3q
-  rounds.py: bafybeidxkjo6us24fj46fwfxopbbd3njystt4nuqmgpvrmigestr36tkou
+  models.py: bafybeicmsix6gzyofxksvddnf6pypkots7mkfjn2zgcvyk4xgjiz3ubbje
+  payloads.py: bafybeih23vk4vej5xj6jpbazc2tskd6kwurfeicp7ptyz7omddrlvpeyp4
+  rounds.py: bafybeigmby3dbsld5isogoujb2dizz7vc3ed3ikusaz7k5mya6t544ktci
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
   tests/test_behaviours.py: bafybeie6b5ibatxs4dlunkzj3b6k7al4ifgqyynh2qvbjekkbbnhlum4iy
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
@@ -97,6 +97,7 @@ models:
           version: {}
         voting_power: '10'
       hello_world_message: HELLO_WORLD!
+      owner: OWNER!
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120

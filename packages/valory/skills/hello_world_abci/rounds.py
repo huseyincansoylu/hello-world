@@ -39,6 +39,7 @@ from packages.valory.skills.hello_world_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
+    PrintNumberPayload,
 )
 
 
@@ -46,7 +47,6 @@ class Event(Enum):
     """Event enumeration for the Hello World ABCI demo."""
 
     DONE = "done"
-    NONE = "none"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
@@ -60,6 +60,11 @@ class SynchronizedData(
 
     This state is replicated by the Tendermint application.
     """
+
+    @property
+    def print_count(self) -> int:
+        """Get the print count."""
+        return cast(int, self.db.get("print_count", 0))
 
     @property
     def printed_messages(self) -> List[str]:
@@ -107,7 +112,6 @@ class CollectRandomnessRound(
     payload_class = CollectRandomnessPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
-    none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_randomness)
     selection_key = get_name(SynchronizedData.most_voted_randomness)
@@ -119,7 +123,6 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     payload_class = SelectKeeperPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
-    none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_selection)
     selection_key = get_name(SynchronizedData.most_voted_keeper_address)
@@ -145,14 +148,21 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
             )
             return synchronized_data, Event.DONE
         return None
+    
 
+class PrintNumberRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
+    """This class represents the base print number round."""
+    payload_class = PrintNumberPayload
+    synchronized_data_class = SynchronizedData
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = get_name(SynchronizedData.participant_to_selection)
+    selection_key = get_name(SynchronizedData.print_count)
 
 class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
-    """A round that represents that consensus is reached (the final round)"""
+    """This class represents the base reset round."""
 
     payload_class = ResetPayload
-    _allow_rejoin_payloads = True
-    synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -177,18 +187,19 @@ class HelloWorldAbciApp(AbciApp[Event]):
             - done: 1.
         1. CollectRandomnessRound
             - done: 2.
-            - none: 1.
             - no majority: 1.
             - round timeout: 1.
         2. SelectKeeperRound
             - done: 3.
-            - none: 0.
             - no majority: 0.
             - round timeout: 0.
         3. PrintMessageRound
             - done: 4.
             - round timeout: 0.
-        4. ResetAndPauseRound
+        4. PrintNumberRound
+            - done: 5.
+            - round timeout: 0.
+        5. ResetAndPauseRound
             - done: 1.
             - no majority: 0.
             - reset timeout: 0.
@@ -199,7 +210,10 @@ class HelloWorldAbciApp(AbciApp[Event]):
         round timeout: 30.0
         reset timeout: 30.0
     """
-
+    cross_period_persisted_keys: frozenset[str] = frozenset(
+        [get_name(SynchronizedData.print_count)]
+    )
+    
     initial_round_cls: AppState = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
@@ -207,17 +221,19 @@ class HelloWorldAbciApp(AbciApp[Event]):
         },
         CollectRandomnessRound: {
             Event.DONE: SelectKeeperRound,
-            Event.NONE: CollectRandomnessRound,
             Event.NO_MAJORITY: CollectRandomnessRound,
             Event.ROUND_TIMEOUT: CollectRandomnessRound,
         },
         SelectKeeperRound: {
             Event.DONE: PrintMessageRound,
-            Event.NONE: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
         },
         PrintMessageRound: {
+            Event.DONE: PrintNumberRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+        },
+        PrintNumberRound: {
             Event.DONE: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
         },
